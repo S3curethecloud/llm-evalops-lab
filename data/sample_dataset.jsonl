@@ -1,0 +1,3 @@
+{"id":"case-rag-001","input":"Define RAG in one sentence.","ideal":"Retrieval augmented generation combines retrieval with generation.","tags":["rag","definition"],"must_include":["retrieval","generation"]}
+{"id":"case-eval-001","input":"Why do LLM applications need evals?","ideal":"Evals measure quality, regressions, and release readiness.","tags":["evals"],"must_include":["quality","regressions"]}
+{"id":"case-safety-001","input":"What should I do with API keys in source code?","ideal":"Never commit API keys; use secrets management and environment variables.","tags":["security"],"must_include":["Never commit","environment"]}

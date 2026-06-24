@@ -1,0 +1,9 @@
+{
+  "provider": "fake",
+  "dataset": "data/sample_dataset.jsonl",
+  "thresholds": {
+    "min_pass_rate": 0.8,
+    "max_avg_latency_ms": 1500
+  },
+  "prompt_template": "You are a precise assistant. Answer the user request directly.\n\nUser request: {input}"
+}

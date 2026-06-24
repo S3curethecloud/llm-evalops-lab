@@ -28,12 +28,16 @@ class TokenIndex:
         self._vectors = [_vectorize(doc.text) for doc in documents]
 
     @classmethod
-    def from_paths(cls, paths: list[str | Path]) -> "TokenIndex":
+    def from_paths(cls, paths: list[str | Path]) -> TokenIndex:
         documents: list[Document] = []
         for path in paths:
             current = Path(path)
             documents.append(
-                Document(id=str(current), text=current.read_text(encoding="utf-8"), metadata={"path": str(current)})
+                Document(
+                    id=str(current),
+                    text=current.read_text(encoding="utf-8"),
+                    metadata={"path": str(current)},
+                )
             )
         return cls(documents)
 

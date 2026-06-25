@@ -26,6 +26,14 @@ Recommended repository name: **`llm-evalops-lab`**
 - GitHub Actions CI for lint, format check, and tests.
 - Docs for architecture, evaluation methodology, and GitHub setup.
 
+## Controlled Failure Evidence
+
+The `READY` dashboard reflects the current deterministic release candidate. A separate controlled blocked-release scenario is included to demonstrate gate behavior under failure.
+
+The blocked scenario intentionally omits an expected RAG source document, causing recall@k and groundedness to fall below threshold. The command exits non-zero and proves the release gate blocks promotion when evidence is missing.
+
+See `docs/phase10_failure_evidence.md` for the Phase 10 runbook.
+
 ## Quick start
 
 ```bash

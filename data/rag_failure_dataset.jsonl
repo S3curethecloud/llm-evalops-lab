@@ -1,0 +1,1 @@
+{"id":"rag-blocked-security-001","query":"How should API keys be handled?","expected_doc_ids":["data/rag_corpus/security.md"],"expected_terms":["secrets management","environment variables"],"tags":["rag","security","blocked-release"]}

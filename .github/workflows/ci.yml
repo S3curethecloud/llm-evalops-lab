@@ -126,6 +126,23 @@ jobs:
             --report-dir reports \
             --report-stem dashboard-python-${{ matrix.python-version }}
 
+      - name: Assert controlled RAG failure is blocked
+        run: |
+          if llm-lab rag-eval \
+            --dataset data/rag_failure_dataset.jsonl \
+            --docs \
+              data/rag_corpus/rag.md \
+              data/rag_corpus/evals.md \
+            --top-k 2 \
+            --min-pass-rate 1.0 \
+            --report-dir reports \
+            --report-stem rag-blocked-failure-python-${{ matrix.python-version }}; then
+            echo "Expected controlled RAG failure to fail, but it passed"
+            exit 1
+          else
+            echo "Controlled RAG failure correctly blocked release candidate"
+          fi
+
       - name: Upload eval report artifact
         uses: actions/upload-artifact@v4
         with:

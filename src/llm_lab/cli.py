@@ -10,6 +10,7 @@ from llm_lab.evals import EvalRunner
 from llm_lab.providers.base import LLMProvider
 from llm_lab.providers.fake import FakeProvider
 from llm_lab.providers.openai_provider import OpenAIProvider
+from llm_lab.rag.eval import RAGEvaluator, load_rag_eval_cases, write_rag_report_bundle
 from llm_lab.rag.index import TokenIndex
 from llm_lab.regression import gate_payload, load_report
 from llm_lab.reporting import (
@@ -42,6 +43,16 @@ def main(argv: list[str] | None = None) -> int:
     retrieve_parser.add_argument("--query", required=True)
     retrieve_parser.add_argument("--docs", nargs="+", required=True)
     retrieve_parser.add_argument("--top-k", type=int, default=3)
+
+    rag_eval_parser = subparsers.add_parser("rag-eval", help="Run a retrieval evaluation dataset")
+    rag_eval_parser.add_argument("--dataset", required=True)
+    rag_eval_parser.add_argument("--docs", nargs="+", required=True)
+    rag_eval_parser.add_argument("--top-k", type=int, default=3)
+    rag_eval_parser.add_argument("--min-pass-rate", type=float, default=1.0)
+    rag_eval_parser.add_argument("--min-recall-at-k", type=float, default=1.0)
+    rag_eval_parser.add_argument("--min-groundedness", type=float, default=1.0)
+    rag_eval_parser.add_argument("--report-dir", default=None)
+    rag_eval_parser.add_argument("--report-stem", default="rag-eval-report")
 
     args = parser.parse_args(argv)
 
@@ -85,6 +96,30 @@ def main(argv: list[str] | None = None) -> int:
             print(f"Wrote Markdown report: {markdown_path}", file=sys.stderr)
 
         return 0 if gate.passed else 1
+
+    if args.command == "rag-eval":
+        index = TokenIndex.from_paths(args.docs)
+        cases = load_rag_eval_cases(args.dataset)
+        report = RAGEvaluator(
+            index,
+            top_k=args.top_k,
+            min_recall_at_k=args.min_recall_at_k,
+            min_groundedness=args.min_groundedness,
+        ).run(cases)
+        payload = report.to_dict()
+        rendered = json.dumps(payload, indent=2, sort_keys=True)
+        print(rendered)
+
+        if args.report_dir:
+            json_path, markdown_path = write_rag_report_bundle(
+                payload,
+                report_dir=Path(args.report_dir),
+                stem=args.report_stem,
+            )
+            print(f"Wrote RAG JSON report: {json_path}", file=sys.stderr)
+            print(f"Wrote RAG Markdown report: {markdown_path}", file=sys.stderr)
+
+        return 0 if report.pass_rate >= args.min_pass_rate else 1
 
     if args.command == "retrieve":
         index = TokenIndex.from_paths(args.docs)

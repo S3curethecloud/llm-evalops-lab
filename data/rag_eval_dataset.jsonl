@@ -1,0 +1,5 @@
+{"id":"rag-eval-001","query":"What does RAG combine?","expected_doc_ids":["data/rag_corpus/rag.md"],"expected_terms":["retrieval","generation"],"tags":["rag","definition"]}
+{"id":"rag-eval-002","query":"How should API keys be handled?","expected_doc_ids":["data/rag_corpus/security.md"],"expected_terms":["secrets management","environment variables"],"tags":["security","secrets"]}
+{"id":"rag-eval-003","query":"What should logs do with PII?","expected_doc_ids":["data/rag_corpus/security.md"],"expected_terms":["PII","redact","sensitive user data"],"tags":["security","privacy"]}
+{"id":"rag-eval-004","query":"What should prompt injection be treated as?","expected_doc_ids":["data/rag_corpus/safety.md"],"expected_terms":["untrusted input","system instructions"],"tags":["safety","prompt-injection"]}
+{"id":"rag-eval-005","query":"What do LLM evals measure before release?","expected_doc_ids":["data/rag_corpus/evals.md"],"expected_terms":["quality","regressions","release readiness"],"tags":["evals","release"]}

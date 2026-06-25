@@ -128,3 +128,23 @@ llm-lab eval \
 This command fails if the current pass rate drops below the minimum threshold or below the stored baseline beyond the allowed regression margin.
 
 See docs/phase3_regression_gate.md for the Phase 3 runbook.
+
+Phase 4 RAG Evaluation
+
+Run the deterministic RAG retrieval quality gate:
+
+llm-lab rag-eval \
+  --dataset data/rag_eval_dataset.jsonl \
+  --docs \
+    data/rag_corpus/rag.md \
+    data/rag_corpus/evals.md \
+    data/rag_corpus/security.md \
+    data/rag_corpus/safety.md \
+  --top-k 2 \
+  --min-pass-rate 1.0 \
+  --report-dir reports \
+  --report-stem rag-sample
+
+This command checks retrieval recall, context precision, grounded-term coverage, and per-tag RAG summaries.
+
+See docs/phase4_rag_evaluation.md for the Phase 4 runbook.

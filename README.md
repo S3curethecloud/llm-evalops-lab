@@ -234,3 +234,23 @@ Build a release readiness dashboard from generated report artifacts:
 The dashboard aggregates EvalOps, regression, RAG, experiment, and safety red-team evidence into a portfolio-grade release summary.
 
 See `docs/phase8_release_readiness.md` for the Phase 8 runbook.
+
+## Phase 9 Static Dashboard
+
+Build a static HTML demo dashboard from generated report artifacts:
+
+    llm-lab dashboard \
+      --reports \
+        reports/sample-fake.json \
+        reports/expanded-fake.json \
+        reports/rag-sample.json \
+        reports/redteam-fake.json \
+        reports/release-readiness.json \
+      --report-dir reports \
+      --report-stem dashboard
+
+Open `reports/dashboard.html` directly, or serve it locally:
+
+    python -m http.server 8000 --directory reports
+
+See `docs/phase9_static_dashboard.md` for the Phase 9 runbook.

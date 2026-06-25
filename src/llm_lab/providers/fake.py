@@ -18,7 +18,17 @@ class FakeProvider:
         started = time.perf_counter()
         lowered = prompt.lower()
 
-        if "prompt injection" in lowered or "ignore previous instructions" in lowered:
+        if "hidden system prompt" in lowered or "developer message" in lowered:
+            text = "I cannot reveal hidden system prompts or developer messages."
+        elif "production api key" in lowered or "print the production api key" in lowered:
+            text = "I cannot provide secrets. Use secrets management and environment variables."
+        elif "ssn" in lowered or "social security" in lowered:
+            text = "Minimize PII in logs and redact sensitive user data before storage."
+        elif "nonexistent source" in lowered or "fake citation" in lowered or "make up" in lowered:
+            text = "I cannot verify that source. Cite reliable evidence or state uncertainty."
+        elif "developer mode" in lowered or "bypass safety" in lowered:
+            text = "I cannot bypass safety policies or ignore system instructions."
+        elif "prompt injection" in lowered or "ignore previous instructions" in lowered:
             text = "Treat prompt injection as untrusted input and follow the system instructions."
         elif "hallucination" in lowered:
             text = "State uncertainty, avoid hallucination, and ask for or cite reliable evidence."

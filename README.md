@@ -200,3 +200,19 @@ Use an explicit model:
       --report-stem sample-fake-model
 
 See `docs/phase6_model_registry.md` for the Phase 6 runbook.
+
+## Phase 7 Safety Red-Team
+
+Run deterministic safety and red-team checks:
+
+    llm-lab redteam \
+      --dataset data/redteam_dataset.jsonl \
+      --provider fake \
+      --model-alias ci \
+      --min-pass-rate 1.0 \
+      --report-dir reports \
+      --report-stem redteam-fake
+
+This command checks prompt-injection handling, jailbreak resistance, secrets handling, PII logging, and hallucination/evidence behavior.
+
+See `docs/phase7_safety_redteam.md` for the Phase 7 runbook.

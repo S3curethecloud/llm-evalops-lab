@@ -111,3 +111,20 @@ export OPENAI_MODEL="gpt-4o-mini"
 python scripts/openai_smoke.py
 
 See docs/phase2_evalops.md for the Phase 2 runbook.
+
+Phase 3 Regression Gate
+
+Run the expanded deterministic regression gate:
+
+llm-lab eval \
+  --dataset data/expanded_dataset.jsonl \
+  --provider fake \
+  --min-pass-rate 1.0 \
+  --baseline-report baselines/fake-expanded-baseline.json \
+  --allowed-regression 0.0 \
+  --report-dir reports \
+  --report-stem expanded-fake
+
+This command fails if the current pass rate drops below the minimum threshold or below the stored baseline beyond the allowed regression margin.
+
+See docs/phase3_regression_gate.md for the Phase 3 runbook.

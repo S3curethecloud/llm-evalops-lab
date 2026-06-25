@@ -3,7 +3,7 @@ import json
 from llm_lab.dataset import load_jsonl
 from llm_lab.evals import EvalRunner
 from llm_lab.providers.fake import FakeProvider
-from llm_lab.reporting import report_payload, render_markdown_report, write_report_bundle
+from llm_lab.reporting import render_markdown_report, report_payload, write_report_bundle
 
 
 def test_report_payload_includes_metadata() -> None:

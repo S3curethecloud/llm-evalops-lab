@@ -28,3 +28,7 @@ artifacts/
 # Generated EvalOps reports
 reports/*
 !reports/.gitkeep
+
+# Generated experiment registries
+experiments/*
+!experiments/.gitkeep

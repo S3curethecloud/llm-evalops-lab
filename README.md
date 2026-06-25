@@ -148,3 +148,31 @@ llm-lab rag-eval \
 This command checks retrieval recall, context precision, grounded-term coverage, and per-tag RAG summaries.
 
 See docs/phase4_rag_evaluation.md for the Phase 4 runbook.
+
+## Phase 5 Experiment Tracking
+
+Generate model/provider comparison scoreboards:
+
+    llm-lab eval \
+      --dataset data/sample_dataset.jsonl \
+      --provider fake \
+      --report-dir reports \
+      --report-stem sample-fake \
+      --registry experiments/registry.jsonl
+
+    llm-lab eval \
+      --dataset data/expanded_dataset.jsonl \
+      --provider fake \
+      --min-pass-rate 1.0 \
+      --baseline-report baselines/fake-expanded-baseline.json \
+      --allowed-regression 0.0 \
+      --report-dir reports \
+      --report-stem expanded-fake \
+      --registry experiments/registry.jsonl
+
+    llm-lab compare \
+      --reports reports/sample-fake.json reports/expanded-fake.json \
+      --output-csv reports/model-comparison.csv \
+      --output-md reports/model-comparison.md
+
+See `docs/phase5_experiment_tracking.md` for the Phase 5 runbook.

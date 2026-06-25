@@ -41,11 +41,17 @@ jobs:
       - name: Tests
         run: pytest
 
+      - name: Check model registry
+        run: |
+          llm-lab models
+          llm-lab models --format json
+
       - name: Generate sample eval report
         run: |
           llm-lab eval \
             --dataset data/sample_dataset.jsonl \
             --provider fake \
+            --model-alias ci \
             --report-dir reports \
             --report-stem sample-fake-python-${{ matrix.python-version }} \
             --registry experiments/registry-python-${{ matrix.python-version }}.jsonl
@@ -55,6 +61,7 @@ jobs:
           llm-lab eval \
             --dataset data/expanded_dataset.jsonl \
             --provider fake \
+            --model-alias ci \
             --min-pass-rate 1.0 \
             --baseline-report baselines/fake-expanded-baseline.json \
             --allowed-regression 0.0 \

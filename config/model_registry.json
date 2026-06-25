@@ -1,0 +1,28 @@
+{
+  "models": [
+    {
+      "provider": "fake",
+      "alias": "default",
+      "model": "fake-deterministic-v1",
+      "description": "Deterministic fake provider model for local tests and CI."
+    },
+    {
+      "provider": "fake",
+      "alias": "ci",
+      "model": "fake-deterministic-v1",
+      "description": "CI-safe deterministic fake model alias."
+    },
+    {
+      "provider": "openai",
+      "alias": "default",
+      "model": "gpt-4o-mini",
+      "description": "Default OpenAI smoke/eval model."
+    },
+    {
+      "provider": "openai",
+      "alias": "smoke",
+      "model": "gpt-4o-mini",
+      "description": "OpenAI smoke-test model alias."
+    }
+  ]
+}

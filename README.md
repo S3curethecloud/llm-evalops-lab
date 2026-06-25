@@ -216,3 +216,21 @@ Run deterministic safety and red-team checks:
 This command checks prompt-injection handling, jailbreak resistance, secrets handling, PII logging, and hallucination/evidence behavior.
 
 See `docs/phase7_safety_redteam.md` for the Phase 7 runbook.
+
+## Phase 8 Release Readiness
+
+Build a release readiness dashboard from generated report artifacts:
+
+    llm-lab readiness \
+      --reports \
+        reports/sample-fake.json \
+        reports/expanded-fake.json \
+        reports/rag-sample.json \
+        reports/redteam-fake.json \
+      --min-pass-rate 1.0 \
+      --report-dir reports \
+      --report-stem release-readiness
+
+The dashboard aggregates EvalOps, regression, RAG, experiment, and safety red-team evidence into a portfolio-grade release summary.
+
+See `docs/phase8_release_readiness.md` for the Phase 8 runbook.

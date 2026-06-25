@@ -23,6 +23,7 @@ from llm_lab.providers.fake import FakeProvider
 from llm_lab.providers.openai_provider import OpenAIProvider
 from llm_lab.rag.eval import RAGEvaluator, load_rag_eval_cases, write_rag_report_bundle
 from llm_lab.rag.index import TokenIndex
+from llm_lab.readiness import build_readiness_payload, write_readiness_bundle
 from llm_lab.regression import gate_payload, load_report
 from llm_lab.reporting import (
     report_payload,
@@ -84,6 +85,15 @@ def main(argv: list[str] | None = None) -> int:
     redteam_parser.add_argument("--min-pass-rate", type=float, default=1.0)
     redteam_parser.add_argument("--report-dir", default=None)
     redteam_parser.add_argument("--report-stem", default="redteam-report")
+
+    readiness_parser = subparsers.add_parser(
+        "readiness",
+        help="Build a release readiness dashboard from report artifacts",
+    )
+    readiness_parser.add_argument("--reports", nargs="+", required=True)
+    readiness_parser.add_argument("--min-pass-rate", type=float, default=1.0)
+    readiness_parser.add_argument("--report-dir", required=True)
+    readiness_parser.add_argument("--report-stem", default="release-readiness")
 
     retrieve_parser = subparsers.add_parser("retrieve", help="Run local retrieval over text files")
     retrieve_parser.add_argument("--query", required=True)
@@ -168,6 +178,21 @@ def main(argv: list[str] | None = None) -> int:
             )
 
         return 0 if gate.passed else 1
+
+    if args.command == "readiness":
+        payload = build_readiness_payload(
+            args.reports,
+            min_pass_rate=args.min_pass_rate,
+        )
+        print(json.dumps(payload, indent=2, sort_keys=True))
+        json_path, markdown_path = write_readiness_bundle(
+            payload,
+            report_dir=Path(args.report_dir),
+            stem=args.report_stem,
+        )
+        print(f"Wrote readiness JSON report: {json_path}", file=sys.stderr)
+        print(f"Wrote readiness Markdown report: {markdown_path}", file=sys.stderr)
+        return 0 if bool(payload.get("release_ready")) else 1
 
     if args.command == "redteam":
         provider = _provider(

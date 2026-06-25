@@ -102,6 +102,18 @@ jobs:
             --report-dir reports \
             --report-stem redteam-fake-python-${{ matrix.python-version }}
 
+      - name: Generate release readiness dashboard
+        run: |
+          llm-lab readiness \
+            --reports \
+              reports/sample-fake-python-${{ matrix.python-version }}.json \
+              reports/expanded-fake-python-${{ matrix.python-version }}.json \
+              reports/rag-sample-python-${{ matrix.python-version }}.json \
+              reports/redteam-fake-python-${{ matrix.python-version }}.json \
+            --min-pass-rate 1.0 \
+            --report-dir reports \
+            --report-stem release-readiness-python-${{ matrix.python-version }}
+
       - name: Upload eval report artifact
         uses: actions/upload-artifact@v4
         with:

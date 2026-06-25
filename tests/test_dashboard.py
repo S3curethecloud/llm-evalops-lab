@@ -124,3 +124,33 @@ def test_write_dashboard_bundle(tmp_path) -> None:
 
     assert json.loads(json_path.read_text(encoding="utf-8"))["release_ready"] is True
     assert "Release Evidence Dashboard" in html_path.read_text(encoding="utf-8")
+
+
+def test_dashboard_payload_with_blocked_release_evidence(tmp_path) -> None:
+    eval_path = tmp_path / "eval.json"
+    blocked_path = tmp_path / "rag-blocked-failure.json"
+
+    eval_path.write_text(json.dumps(_eval_report()), encoding="utf-8")
+    blocked_path.write_text(
+        json.dumps(
+            {
+                "total": 1,
+                "passed": 0,
+                "pass_rate": 0.0,
+                "avg_recall_at_k": 0.0,
+                "avg_groundedness": 0.0,
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    payload = build_dashboard_payload(
+        [eval_path],
+        blocked_report_paths=[blocked_path],
+    )
+    html = render_dashboard_html(payload)
+
+    assert payload["evidence_summary"][0]["status"] == "READY"
+    assert payload["evidence_summary"][1]["status"] == "BLOCKED AS EXPECTED"
+    assert "Controlled blocked-release scenario" in html
+    assert "BLOCKED AS EXPECTED" in html

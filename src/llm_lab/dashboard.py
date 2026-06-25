@@ -33,8 +33,13 @@ class DashboardReport:
         }
 
 
-def build_dashboard_payload(report_paths: Sequence[str | Path]) -> dict[str, Any]:
+def build_dashboard_payload(
+    report_paths: Sequence[str | Path],
+    *,
+    blocked_report_paths: Sequence[str | Path] = (),
+) -> dict[str, Any]:
     reports = [dashboard_report_from_path(Path(path)) for path in report_paths]
+    blocked_reports = [dashboard_report_from_path(Path(path)) for path in blocked_report_paths]
     readiness_reports = [report for report in reports if report.report_type == "release-readiness"]
     release_ready = (
         readiness_reports[-1].release_ready
@@ -50,6 +55,8 @@ def build_dashboard_payload(report_paths: Sequence[str | Path]) -> dict[str, Any
         "release_ready": bool(release_ready),
         "total_reports": len(reports),
         "reports": [report.to_dict() for report in reports],
+        "blocked_reports": [report.to_dict() for report in blocked_reports],
+        "evidence_summary": dashboard_evidence_summary(bool(release_ready), blocked_reports),
         "summary": {
             "evalops_reports": _count_type(reports, "evalops"),
             "rag_reports": _count_type(reports, "rag-evaluation"),
@@ -57,6 +64,38 @@ def build_dashboard_payload(report_paths: Sequence[str | Path]) -> dict[str, Any
             "readiness_reports": _count_type(reports, "release-readiness"),
         },
     }
+
+
+def dashboard_evidence_summary(
+    release_ready: bool,
+    blocked_reports: Sequence[DashboardReport],
+) -> list[dict[str, str]]:
+    rows = [
+        {
+            "evidence_type": "Current release candidate",
+            "status": "READY" if release_ready else "NOT READY",
+            "detail": (
+                "Aggregated EvalOps, RAG, safety, and readiness reports for the current candidate."
+            ),
+            "path": "",
+        }
+    ]
+
+    for report in blocked_reports:
+        blocked = not _report_passed(report)
+        rows.append(
+            {
+                "evidence_type": "Controlled blocked-release scenario",
+                "status": "BLOCKED AS EXPECTED" if blocked else "UNEXPECTED PASS",
+                "detail": (
+                    f"{report.name}: pass_rate={_format_optional_rate(report.pass_rate)}; "
+                    "expected missing evidence to fail closed."
+                ),
+                "path": report.path,
+            }
+        )
+
+    return rows
 
 
 def dashboard_report_from_path(path: Path) -> DashboardReport:
@@ -118,6 +157,7 @@ def render_dashboard_html(payload: Mapping[str, Any]) -> str:
 
     cards = _summary_cards(summary if isinstance(summary, Mapping) else {})
     rows = _report_rows(reports if isinstance(reports, list) else [])
+    evidence_rows = _evidence_rows(payload.get("evidence_summary", []))
 
     return f"""<!doctype html>
 <html lang="en">
@@ -264,6 +304,26 @@ def render_dashboard_html(payload: Mapping[str, Any]) -> str:
       <div class="grid">
         {cards}
       </div>
+      <section class="evidence-panel">
+        <h2>Gate Evidence</h2>
+        <p class="subtitle small">
+          READY reflects the current passing release candidate. Controlled blocked-release
+          evidence proves gates fail closed when required retrieval evidence is missing.
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>Evidence Type</th>
+              <th>Status</th>
+              <th>Detail</th>
+              <th>Path</th>
+            </tr>
+          </thead>
+          <tbody>
+            {evidence_rows}
+          </tbody>
+        </table>
+      </section>
       <table>
         <thead>
           <tr>
@@ -323,6 +383,27 @@ def _summary_cards(summary: Mapping[str, Any]) -> str:
     )
 
 
+def _evidence_rows(rows: object) -> str:
+    if not isinstance(rows, list):
+        return ""
+
+    rendered: list[str] = []
+    for item in rows:
+        if not isinstance(item, Mapping):
+            continue
+
+        rendered.append(
+            "<tr>"
+            f"<td>{html.escape(str(item.get('evidence_type', '')))}</td>"
+            f"<td>{html.escape(str(item.get('status', '')))}</td>"
+            f"<td>{html.escape(str(item.get('detail', '')))}</td>"
+            f"<td><code>{html.escape(str(item.get('path', '')))}</code></td>"
+            "</tr>"
+        )
+
+    return "\n".join(rendered)
+
+
 def _report_rows(reports: Sequence[object]) -> str:
     rows: list[str] = []
 
@@ -352,6 +433,10 @@ def _report_rows(reports: Sequence[object]) -> str:
         )
 
     return "\n".join(rows)
+
+
+def _format_optional_rate(value: float | None) -> str:
+    return "n/a" if value is None else f"{value:.3f}"
 
 
 def _report_passed(report: DashboardReport) -> bool:

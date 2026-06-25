@@ -25,6 +25,7 @@ Generate reports first, then run:
         reports/rag-sample.json \
         reports/redteam-fake.json \
         reports/release-readiness.json \
+      --blocked-reports reports/rag-blocked-failure.json \
       --report-dir reports \
       --report-stem dashboard
 
@@ -43,3 +44,6 @@ Then open:
 ## Design choice
 
 This phase intentionally avoids adding a web framework dependency. The generated dashboard is static, reviewable, portable, and CI-artifact friendly.
+
+The dashboard also displays a gate-evidence panel distinguishing the current passing release candidate from the controlled blocked-release scenario.
+

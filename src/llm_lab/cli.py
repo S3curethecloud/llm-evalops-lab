@@ -101,6 +101,7 @@ def main(argv: list[str] | None = None) -> int:
         help="Build a static HTML dashboard from report artifacts",
     )
     dashboard_parser.add_argument("--reports", nargs="+", required=True)
+    dashboard_parser.add_argument("--blocked-reports", nargs="*", default=[])
     dashboard_parser.add_argument("--report-dir", required=True)
     dashboard_parser.add_argument("--report-stem", default="dashboard")
 
@@ -189,7 +190,10 @@ def main(argv: list[str] | None = None) -> int:
         return 0 if gate.passed else 1
 
     if args.command == "dashboard":
-        payload = build_dashboard_payload(args.reports)
+        payload = build_dashboard_payload(
+            args.reports,
+            blocked_report_paths=args.blocked_reports,
+        )
         print(json.dumps(payload, indent=2, sort_keys=True))
         json_path, html_path = write_dashboard_bundle(
             payload,

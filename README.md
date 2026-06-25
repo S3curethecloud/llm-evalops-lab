@@ -262,6 +262,7 @@ Build a static HTML demo dashboard from generated report artifacts:
         reports/rag-sample.json \
         reports/redteam-fake.json \
         reports/release-readiness.json \
+      --blocked-reports reports/rag-blocked-failure.json \
       --report-dir reports \
       --report-stem dashboard
 
@@ -270,3 +271,6 @@ Open `reports/dashboard.html` directly, or serve it locally:
     python -m http.server 8000 --directory reports
 
 See `docs/phase9_static_dashboard.md` for the Phase 9 runbook.
+
+The dashboard also displays a gate-evidence panel distinguishing the current passing release candidate from the controlled blocked-release scenario.
+

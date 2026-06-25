@@ -143,6 +143,20 @@ jobs:
             echo "Controlled RAG failure correctly blocked release candidate"
           fi
 
+      - name: Regenerate static dashboard with blocked evidence
+        run: |
+          llm-lab dashboard \
+            --reports \
+              reports/sample-fake-python-${{ matrix.python-version }}.json \
+              reports/expanded-fake-python-${{ matrix.python-version }}.json \
+              reports/rag-sample-python-${{ matrix.python-version }}.json \
+              reports/redteam-fake-python-${{ matrix.python-version }}.json \
+              reports/release-readiness-python-${{ matrix.python-version }}.json \
+            --blocked-reports \
+              reports/rag-blocked-failure-python-${{ matrix.python-version }}.json \
+            --report-dir reports \
+            --report-stem dashboard-python-${{ matrix.python-version }}
+
       - name: Upload eval report artifact
         uses: actions/upload-artifact@v4
         with:

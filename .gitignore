@@ -24,3 +24,7 @@ artifacts/
 .DS_Store
 .vscode/
 .idea/
+
+# Generated EvalOps reports
+reports/*
+!reports/.gitkeep

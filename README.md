@@ -1,5 +1,13 @@
 # LLM EvalOps Lab
 
+A production-style LLM EvalOps lab with deterministic evaluation, regression gates, RAG quality metrics, model comparison, red-team safety checks, release readiness evidence, and a public static dashboard.
+
+## Live Demo
+
+View the static release evidence dashboard:
+
+https://llm-evalops-dashboard.pages.dev
+
 Engineering-grade LLM evaluation, safety, retrieval, and release-readiness lab for building reliable LLM applications with GitHub-native CI.
 
 Recommended repository name: **`llm-evalops-lab`**

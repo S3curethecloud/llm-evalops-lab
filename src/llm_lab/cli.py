@@ -5,6 +5,7 @@ import json
 import sys
 from pathlib import Path
 
+from llm_lab.dashboard import build_dashboard_payload, write_dashboard_bundle
 from llm_lab.dataset import load_jsonl
 from llm_lab.evals import EvalRunner
 from llm_lab.experiments import (
@@ -95,6 +96,14 @@ def main(argv: list[str] | None = None) -> int:
     readiness_parser.add_argument("--report-dir", required=True)
     readiness_parser.add_argument("--report-stem", default="release-readiness")
 
+    dashboard_parser = subparsers.add_parser(
+        "dashboard",
+        help="Build a static HTML dashboard from report artifacts",
+    )
+    dashboard_parser.add_argument("--reports", nargs="+", required=True)
+    dashboard_parser.add_argument("--report-dir", required=True)
+    dashboard_parser.add_argument("--report-stem", default="dashboard")
+
     retrieve_parser = subparsers.add_parser("retrieve", help="Run local retrieval over text files")
     retrieve_parser.add_argument("--query", required=True)
     retrieve_parser.add_argument("--docs", nargs="+", required=True)
@@ -178,6 +187,18 @@ def main(argv: list[str] | None = None) -> int:
             )
 
         return 0 if gate.passed else 1
+
+    if args.command == "dashboard":
+        payload = build_dashboard_payload(args.reports)
+        print(json.dumps(payload, indent=2, sort_keys=True))
+        json_path, html_path = write_dashboard_bundle(
+            payload,
+            report_dir=Path(args.report_dir),
+            stem=args.report_stem,
+        )
+        print(f"Wrote dashboard JSON report: {json_path}", file=sys.stderr)
+        print(f"Wrote dashboard HTML report: {html_path}", file=sys.stderr)
+        return 0 if bool(payload.get("release_ready")) else 1
 
     if args.command == "readiness":
         payload = build_readiness_payload(

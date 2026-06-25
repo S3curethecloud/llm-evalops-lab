@@ -114,6 +114,18 @@ jobs:
             --report-dir reports \
             --report-stem release-readiness-python-${{ matrix.python-version }}
 
+      - name: Generate static dashboard
+        run: |
+          llm-lab dashboard \
+            --reports \
+              reports/sample-fake-python-${{ matrix.python-version }}.json \
+              reports/expanded-fake-python-${{ matrix.python-version }}.json \
+              reports/rag-sample-python-${{ matrix.python-version }}.json \
+              reports/redteam-fake-python-${{ matrix.python-version }}.json \
+              reports/release-readiness-python-${{ matrix.python-version }}.json \
+            --report-dir reports \
+            --report-stem dashboard-python-${{ matrix.python-version }}
+
       - name: Upload eval report artifact
         uses: actions/upload-artifact@v4
         with:

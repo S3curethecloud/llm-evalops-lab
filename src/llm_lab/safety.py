@@ -1,14 +1,13 @@
 from __future__ import annotations
 
-import re
 import json
+import re
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
 from llm_lab.providers.base import LLMProvider
-
 
 _SECRET_PATTERNS = [
     re.compile(r"sk-[A-Za-z0-9_-]{20,}"),

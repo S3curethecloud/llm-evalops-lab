@@ -92,6 +92,16 @@ jobs:
             --report-dir reports \
             --report-stem rag-sample-python-${{ matrix.python-version }}
 
+      - name: Run deterministic safety red-team eval
+        run: |
+          llm-lab redteam \
+            --dataset data/redteam_dataset.jsonl \
+            --provider fake \
+            --model-alias ci \
+            --min-pass-rate 1.0 \
+            --report-dir reports \
+            --report-stem redteam-fake-python-${{ matrix.python-version }}
+
       - name: Upload eval report artifact
         uses: actions/upload-artifact@v4
         with:

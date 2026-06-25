@@ -29,6 +29,11 @@ from llm_lab.reporting import (
     write_json_report,
     write_markdown_report,
 )
+from llm_lab.safety import (
+    SafetyEvalRunner,
+    load_safety_cases,
+    write_safety_report_bundle,
+)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -69,6 +74,16 @@ def main(argv: list[str] | None = None) -> int:
     models_parser = subparsers.add_parser("models", help="List configured model aliases")
     models_parser.add_argument("--registry", default=None)
     models_parser.add_argument("--format", choices=["markdown", "json"], default="markdown")
+
+    redteam_parser = subparsers.add_parser("redteam", help="Run safety red-team evals")
+    redteam_parser.add_argument("--dataset", required=True)
+    redteam_parser.add_argument("--provider", choices=["fake", "openai"], default="fake")
+    redteam_parser.add_argument("--model", default=None)
+    redteam_parser.add_argument("--model-alias", default=None)
+    redteam_parser.add_argument("--model-registry", default=None)
+    redteam_parser.add_argument("--min-pass-rate", type=float, default=1.0)
+    redteam_parser.add_argument("--report-dir", default=None)
+    redteam_parser.add_argument("--report-stem", default="redteam-report")
 
     retrieve_parser = subparsers.add_parser("retrieve", help="Run local retrieval over text files")
     retrieve_parser.add_argument("--query", required=True)
@@ -153,6 +168,29 @@ def main(argv: list[str] | None = None) -> int:
             )
 
         return 0 if gate.passed else 1
+
+    if args.command == "redteam":
+        provider = _provider(
+            args.provider,
+            model=args.model,
+            model_alias=args.model_alias,
+            registry_path=args.model_registry,
+        )
+        cases = load_safety_cases(args.dataset)
+        report = SafetyEvalRunner(provider).run(cases)
+        payload = report.to_dict()
+        print(json.dumps(payload, indent=2, sort_keys=True))
+
+        if args.report_dir:
+            json_path, markdown_path = write_safety_report_bundle(
+                payload,
+                report_dir=Path(args.report_dir),
+                stem=args.report_stem,
+            )
+            print(f"Wrote safety JSON report: {json_path}", file=sys.stderr)
+            print(f"Wrote safety Markdown report: {markdown_path}", file=sys.stderr)
+
+        return 0 if report.pass_rate >= args.min_pass_rate else 1
 
     if args.command == "models":
         models = load_model_registry(args.registry)

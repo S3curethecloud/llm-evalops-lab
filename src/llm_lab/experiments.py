@@ -136,18 +136,14 @@ def render_scoreboard_markdown(records: Sequence[ExperimentRecord]) -> str:
 
     for record in records:
         gate = "n/a" if record.gate_passed is None else str(record.gate_passed).lower()
+        run_id = _safe_cell(record.run_id)
+        provider = _safe_cell(record.provider)
+        model = _safe_cell(record.model)
+        dataset = _safe_cell(record.dataset)
+
         lines.append(
-            "| {run_id} | {provider} | {model} | {dataset} | "
-            "{pass_rate:.3f} | {passed} | {total} | {gate} |".format(
-                run_id=_safe_cell(record.run_id),
-                provider=_safe_cell(record.provider),
-                model=_safe_cell(record.model),
-                dataset=_safe_cell(record.dataset),
-                pass_rate=record.pass_rate,
-                passed=record.passed,
-                total=record.total,
-                gate=gate,
-            )
+            f"| {run_id} | {provider} | {model} | {dataset} | "
+            f"{record.pass_rate:.3f} | {record.passed} | {record.total} | {gate} |"
         )
 
     return "\n".join(lines) + "\n"

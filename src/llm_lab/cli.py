@@ -7,6 +7,11 @@ from pathlib import Path
 
 from llm_lab.dataset import load_jsonl
 from llm_lab.evals import EvalRunner
+from llm_lab.experiments import (
+    append_experiment_record,
+    make_run_id,
+    write_scoreboards,
+)
 from llm_lab.providers.base import LLMProvider
 from llm_lab.providers.fake import FakeProvider
 from llm_lab.providers.openai_provider import OpenAIProvider
@@ -38,6 +43,16 @@ def main(argv: list[str] | None = None) -> int:
     eval_parser.add_argument("--min-pass-rate", type=float, default=1.0)
     eval_parser.add_argument("--baseline-report", default=None)
     eval_parser.add_argument("--allowed-regression", type=float, default=0.0)
+    eval_parser.add_argument("--run-id", default=None)
+    eval_parser.add_argument("--registry", default=None)
+
+    compare_parser = subparsers.add_parser(
+        "compare",
+        help="Build CSV and Markdown scoreboards from evaluation reports",
+    )
+    compare_parser.add_argument("--reports", nargs="+", required=True)
+    compare_parser.add_argument("--output-csv", required=True)
+    compare_parser.add_argument("--output-md", required=True)
 
     retrieve_parser = subparsers.add_parser("retrieve", help="Run local retrieval over text files")
     retrieve_parser.add_argument("--query", required=True)
@@ -66,7 +81,13 @@ def main(argv: list[str] | None = None) -> int:
         provider = _provider(args.provider)
         cases = load_jsonl(args.dataset)
         report = EvalRunner(provider).run(cases)
-        payload = report_payload(report, dataset=args.dataset, provider=args.provider)
+        payload = report_payload(
+            report,
+            dataset=args.dataset,
+            provider=args.provider,
+            model=getattr(provider, "model", args.provider),
+        )
+        payload["metadata"]["run_id"] = args.run_id or make_run_id("eval")
 
         baseline = load_report(Path(args.baseline_report)) if args.baseline_report else None
         gate = gate_payload(
@@ -80,8 +101,10 @@ def main(argv: list[str] | None = None) -> int:
         rendered = json.dumps(payload, indent=2, sort_keys=True)
         print(rendered)
 
+        report_path: Path | None = None
+
         if args.output:
-            write_json_report(payload, Path(args.output))
+            report_path = write_json_report(payload, Path(args.output))
 
         if args.markdown_output:
             write_markdown_report(payload, Path(args.markdown_output))
@@ -92,10 +115,28 @@ def main(argv: list[str] | None = None) -> int:
             markdown_path = report_dir / f"{args.report_stem}.md"
             write_json_report(payload, json_path)
             write_markdown_report(payload, markdown_path)
+            report_path = json_path
             print(f"Wrote JSON report: {json_path}", file=sys.stderr)
             print(f"Wrote Markdown report: {markdown_path}", file=sys.stderr)
 
+        if args.registry:
+            append_experiment_record(
+                payload,
+                Path(args.registry),
+                report_path=report_path or "",
+            )
+
         return 0 if gate.passed else 1
+
+    if args.command == "compare":
+        csv_path, markdown_path = write_scoreboards(
+            args.reports,
+            csv_path=Path(args.output_csv),
+            markdown_path=Path(args.output_md),
+        )
+        print(f"Wrote CSV scoreboard: {csv_path}")
+        print(f"Wrote Markdown scoreboard: {markdown_path}")
+        return 0
 
     if args.command == "rag-eval":
         index = TokenIndex.from_paths(args.docs)

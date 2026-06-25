@@ -17,6 +17,7 @@ def report_payload(
     *,
     dataset: str,
     provider: str,
+    model: str | None = None,
 ) -> dict[str, Any]:
     payload = report.to_dict()
     results = payload.get("results", [])
@@ -25,6 +26,7 @@ def report_payload(
         "generated_at_utc": datetime.now(UTC).isoformat(),
         "dataset": dataset,
         "provider": provider,
+        "model": model or provider,
     }
     payload["tag_summary"] = tag_summary_from_results(results) if isinstance(results, list) else {}
     return payload

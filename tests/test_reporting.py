@@ -16,9 +16,10 @@ def test_report_payload_includes_metadata() -> None:
         provider="fake",
     )
 
-    assert payload["metadata"]["schema_version"] == "evalops.report.v1"
+    assert payload["metadata"]["schema_version"] == "evalops.report.v2"
     assert payload["metadata"]["provider"] == "fake"
     assert payload["pass_rate"] == 1.0
+    assert "tag_summary" in payload
 
 
 def test_render_markdown_report_contains_summary() -> None:

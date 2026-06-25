@@ -1,0 +1,11 @@
+{
+  "avg_latency_ms": 0.0,
+  "metadata": {
+    "dataset": "data/expanded_dataset.jsonl",
+    "provider": "fake",
+    "schema_version": "evalops.report.v2"
+  },
+  "pass_rate": 1.0,
+  "passed": 7,
+  "total": 7
+}

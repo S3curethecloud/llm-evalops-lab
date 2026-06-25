@@ -11,11 +11,11 @@ from llm_lab.providers.base import LLMProvider
 from llm_lab.providers.fake import FakeProvider
 from llm_lab.providers.openai_provider import OpenAIProvider
 from llm_lab.rag.index import TokenIndex
+from llm_lab.regression import gate_payload, load_report
 from llm_lab.reporting import (
     report_payload,
     write_json_report,
     write_markdown_report,
-    write_report_bundle,
 )
 
 
@@ -34,6 +34,9 @@ def main(argv: list[str] | None = None) -> int:
     eval_parser.add_argument("--markdown-output", default=None)
     eval_parser.add_argument("--report-dir", default=None)
     eval_parser.add_argument("--report-stem", default="eval-report")
+    eval_parser.add_argument("--min-pass-rate", type=float, default=1.0)
+    eval_parser.add_argument("--baseline-report", default=None)
+    eval_parser.add_argument("--allowed-regression", type=float, default=0.0)
 
     retrieve_parser = subparsers.add_parser("retrieve", help="Run local retrieval over text files")
     retrieve_parser.add_argument("--query", required=True)
@@ -53,6 +56,16 @@ def main(argv: list[str] | None = None) -> int:
         cases = load_jsonl(args.dataset)
         report = EvalRunner(provider).run(cases)
         payload = report_payload(report, dataset=args.dataset, provider=args.provider)
+
+        baseline = load_report(Path(args.baseline_report)) if args.baseline_report else None
+        gate = gate_payload(
+            payload,
+            min_pass_rate=args.min_pass_rate,
+            baseline=baseline,
+            allowed_regression=args.allowed_regression,
+        )
+        payload["gate"] = gate.to_dict()
+
         rendered = json.dumps(payload, indent=2, sort_keys=True)
         print(rendered)
 
@@ -63,17 +76,15 @@ def main(argv: list[str] | None = None) -> int:
             write_markdown_report(payload, Path(args.markdown_output))
 
         if args.report_dir:
-            json_path, markdown_path = write_report_bundle(
-                report,
-                report_dir=Path(args.report_dir),
-                dataset=args.dataset,
-                provider=args.provider,
-                stem=args.report_stem,
-            )
+            report_dir = Path(args.report_dir)
+            json_path = report_dir / f"{args.report_stem}.json"
+            markdown_path = report_dir / f"{args.report_stem}.md"
+            write_json_report(payload, json_path)
+            write_markdown_report(payload, markdown_path)
             print(f"Wrote JSON report: {json_path}", file=sys.stderr)
             print(f"Wrote Markdown report: {markdown_path}", file=sys.stderr)
 
-        return 0 if report.pass_rate == 1.0 else 1
+        return 0 if gate.passed else 1
 
     if args.command == "retrieve":
         index = TokenIndex.from_paths(args.docs)

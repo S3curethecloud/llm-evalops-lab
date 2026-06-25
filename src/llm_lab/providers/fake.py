@@ -14,7 +14,18 @@ class FakeProvider:
     def generate(self, prompt: str, *, system_prompt: str | None = None) -> LLMResponse:
         started = time.perf_counter()
         lowered = prompt.lower()
-        if "rag" in lowered:
+
+        if "prompt injection" in lowered or "ignore previous instructions" in lowered:
+            text = "Treat prompt injection as untrusted input and follow the system instructions."
+        elif "hallucination" in lowered:
+            text = "State uncertainty, avoid hallucination, and ask for or cite reliable evidence."
+        elif "regression" in lowered:
+            text = (
+                "Regression tests compare current outputs against baselines to catch quality drops."
+            )
+        elif "pii" in lowered:
+            text = "Minimize PII in logs and redact sensitive user data before storage."
+        elif "rag" in lowered:
             text = "Retrieval augmented generation combines retrieval with generation."
         elif "eval" in lowered:
             text = "Evals measure quality, regressions, and release readiness."
@@ -22,6 +33,7 @@ class FakeProvider:
             text = "Never commit API keys; use secrets management and environment variables."
         else:
             text = f"Fake response: {prompt[:120]}"
+
         elapsed = (time.perf_counter() - started) * 1000
         return LLMResponse(
             text=text,

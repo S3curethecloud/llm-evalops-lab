@@ -12,6 +12,12 @@ from llm_lab.experiments import (
     make_run_id,
     write_scoreboards,
 )
+from llm_lab.model_registry import (
+    load_model_registry,
+    render_model_registry_json,
+    render_model_registry_markdown,
+    resolve_model,
+)
 from llm_lab.providers.base import LLMProvider
 from llm_lab.providers.fake import FakeProvider
 from llm_lab.providers.openai_provider import OpenAIProvider
@@ -31,11 +37,17 @@ def main(argv: list[str] | None = None) -> int:
 
     ask_parser = subparsers.add_parser("ask", help="Generate one model response")
     ask_parser.add_argument("--provider", choices=["fake", "openai"], default="fake")
+    ask_parser.add_argument("--model", default=None)
+    ask_parser.add_argument("--model-alias", default=None)
+    ask_parser.add_argument("--model-registry", default=None)
     ask_parser.add_argument("--input", required=True)
 
     eval_parser = subparsers.add_parser("eval", help="Run an evaluation dataset")
     eval_parser.add_argument("--dataset", required=True)
     eval_parser.add_argument("--provider", choices=["fake", "openai"], default="fake")
+    eval_parser.add_argument("--model", default=None)
+    eval_parser.add_argument("--model-alias", default=None)
+    eval_parser.add_argument("--model-registry", default=None)
     eval_parser.add_argument("--output", default=None)
     eval_parser.add_argument("--markdown-output", default=None)
     eval_parser.add_argument("--report-dir", default=None)
@@ -53,6 +65,10 @@ def main(argv: list[str] | None = None) -> int:
     compare_parser.add_argument("--reports", nargs="+", required=True)
     compare_parser.add_argument("--output-csv", required=True)
     compare_parser.add_argument("--output-md", required=True)
+
+    models_parser = subparsers.add_parser("models", help="List configured model aliases")
+    models_parser.add_argument("--registry", default=None)
+    models_parser.add_argument("--format", choices=["markdown", "json"], default="markdown")
 
     retrieve_parser = subparsers.add_parser("retrieve", help="Run local retrieval over text files")
     retrieve_parser.add_argument("--query", required=True)
@@ -72,13 +88,23 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     if args.command == "ask":
-        provider = _provider(args.provider)
+        provider = _provider(
+            args.provider,
+            model=args.model,
+            model_alias=args.model_alias,
+            registry_path=args.model_registry,
+        )
         response = provider.generate(args.input)
         print(response.text)
         return 0
 
     if args.command == "eval":
-        provider = _provider(args.provider)
+        provider = _provider(
+            args.provider,
+            model=args.model,
+            model_alias=args.model_alias,
+            registry_path=args.model_registry,
+        )
         cases = load_jsonl(args.dataset)
         report = EvalRunner(provider).run(cases)
         payload = report_payload(
@@ -127,6 +153,14 @@ def main(argv: list[str] | None = None) -> int:
             )
 
         return 0 if gate.passed else 1
+
+    if args.command == "models":
+        models = load_model_registry(args.registry)
+        if args.format == "json":
+            print(render_model_registry_json(models))
+        else:
+            print(render_model_registry_markdown(models), end="")
+        return 0
 
     if args.command == "compare":
         csv_path, markdown_path = write_scoreboards(
@@ -185,11 +219,24 @@ def main(argv: list[str] | None = None) -> int:
     return 2
 
 
-def _provider(name: str) -> LLMProvider:
+def _provider(
+    name: str,
+    *,
+    model: str | None = None,
+    model_alias: str | None = None,
+    registry_path: str | None = None,
+) -> LLMProvider:
+    selection = resolve_model(
+        name,
+        model=model,
+        model_alias=model_alias,
+        registry_path=registry_path,
+    )
+
     if name == "fake":
-        return FakeProvider()
+        return FakeProvider(model=selection.model)
     if name == "openai":
-        return OpenAIProvider()
+        return OpenAIProvider(model=selection.model)
     raise ValueError(f"Unsupported provider: {name}")
 
 

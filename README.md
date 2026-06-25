@@ -176,3 +176,27 @@ Generate model/provider comparison scoreboards:
       --output-md reports/model-comparison.md
 
 See `docs/phase5_experiment_tracking.md` for the Phase 5 runbook.
+
+## Phase 6 Model Registry
+
+List configured provider/model aliases:
+
+    llm-lab models
+
+Use a configured model alias:
+
+    llm-lab ask \
+      --provider fake \
+      --model-alias ci \
+      --input "Define RAG in one sentence."
+
+Use an explicit model:
+
+    llm-lab eval \
+      --dataset data/sample_dataset.jsonl \
+      --provider fake \
+      --model fake-deterministic-v1 \
+      --report-dir reports \
+      --report-stem sample-fake-model
+
+See `docs/phase6_model_registry.md` for the Phase 6 runbook.

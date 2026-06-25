@@ -9,7 +9,10 @@ class FakeProvider:
     """Deterministic provider used for local tests and CI."""
 
     name = "fake"
-    model = "fake-deterministic-v1"
+    default_model = "fake-deterministic-v1"
+
+    def __init__(self, model: str | None = None) -> None:
+        self.model = model or self.default_model
 
     def generate(self, prompt: str, *, system_prompt: str | None = None) -> LLMResponse:
         started = time.perf_counter()

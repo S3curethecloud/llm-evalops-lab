@@ -87,3 +87,27 @@ This lab is intentionally structured like a real repository: source package, tes
 ## License
 
 MIT
+
+## Phase 2 EvalOps reporting
+
+Generate JSON and Markdown reports locally:
+
+```bash
+llm-lab eval \
+  --dataset data/sample_dataset.jsonl \
+  --provider fake \
+  --report-dir reports \
+  --report-stem fake-sample
+
+The generated files are ignored by Git by default:
+
+reports/fake-sample.json
+reports/fake-sample.md
+
+Run the optional live OpenAI smoke gate only after configuring secrets:
+
+export OPENAI_API_KEY="your-key"
+export OPENAI_MODEL="gpt-4o-mini"
+python scripts/openai_smoke.py
+
+See docs/phase2_evalops.md for the Phase 2 runbook.
